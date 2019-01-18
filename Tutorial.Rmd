@@ -1,0 +1,25 @@
+---
+title: "Intro to Tidyquant"
+author: "Jose Lopez Torres"
+date: "January 18, 2019"
+output: html_document
+---
+
+# Intro
+
+So here we are, fellow reader, at the point where you need to represent some financial information on a report, and want to do something more interesting than copying images from Google. Don't want to go through the (very detailed) guide available on CRAN? Alright, read on then.
+
+Tidyquant is a package that integrates information from reputable sources (Bloomberg, Yahoo Finance, etc.), and makes it readily available as tibbles for use in r. If you are an absolute beginner, I suggest that you start by downloading rstudio from [this link](https://www.rstudio.com/products/rstudio/download/), where you will be able to run the code that is included in this post.
+
+# Getting Started
+
+The first step towards using this package is installing it on r. It is as simple as running the following command from your r console:
+
+`install.packages('tidyquant')`
+
+And presto, We're ready to go! Just remember, before using functions from this package, you have to load the library (we're adding two at once here, in order to ease our handling of dates).
+
+```{r gs2, include = TRUE, warning=FALSE, message=FALSE}
+library(lubridate)
+library(tidyquant)
+```
