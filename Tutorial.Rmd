@@ -23,3 +23,13 @@ And presto, We're ready to go! Just remember, before using functions from this p
 library(lubridate)
 library(tidyquant)
 ```
+
+# So, what can we do with it?
+
+Now, we're going to focus in some of the functions from Tidyquant. If you'd like to know how far this package can take you, run the following instruction:
+
+```{r st, include = TRUE}
+tq_get_options()
+```
+
+This will display some of the functions available in Tidyquant as you dive deeper and advance your quest. For the purpose of this tutorial, I'll focus on subjects associated with stock price data, but just know you could use it to retrieve information about exchanges (NYSE, NASDAQ), currencies (USD, CAD, EUR, JPY) and even metals.
