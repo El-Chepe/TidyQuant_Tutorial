@@ -17,11 +17,12 @@ The first step towards using this package is installing it on r. It is as simple
 
 `install.packages('tidyquant')`
 
-And presto, We're ready to go! Just remember, before using functions from this package, you have to load the library (we're adding two at once here, in order to ease our handling of dates).
+And presto, We're ready to go! Just remember, before using functions from this package, you have to load the library (we're adding three at once here, in order to ease our handling of dates and to be more organized with our charts).
 
 ```{r gs2, include = TRUE, warning=FALSE, message=FALSE}
 library(lubridate)
 library(tidyquant)
+library(gridExtra)
 ```
 
 # So, what can we do with it?
@@ -37,12 +38,12 @@ This will display some of the functions available in Tidyquant as you dive deepe
 Alright, so to start I'll pick a stock. Let's go with Tesla.
 
 ```{r st1, include = TRUE}
-TSLA <- tq_get("TSLA", get = "stock.prices", from = "2018-08-01", to = "2018-11-02")
+TSLA <- tq_get("TSLA", get = "stock.prices", from = "2018-08-01", to = "2019-01-18")
 
 glimpse(TSLA)
 ```
 
-In this case, we used the symbol for Tesla (TSLA), to pull information between August 1st and November 2nd, 2018. As you can see on the table above, `tq_get()` finds intra-day information, like opening, closing, high and low prices, as well as transaction volume and adjusted value for the stock (to correct for splits).
+In this case, we used the symbol for Tesla (TSLA), to pull information between August 1st, 2018 and January 18th, 2019. As you can see on the table above, `tq_get()` finds intra-day information, like opening, closing, high and low prices, as well as transaction volume and adjusted value for the stock (to correct for splits).
 
 Pretty neat, right? So what if you want to plot your own charts? You can use Tidyquant together with ggplot2 in order to create those. To achieve this, simply load `library(ggplot2)` (assuming you previously installed the package `install.packages('ggplot2')`), and wield more r power in your hands.
 
@@ -61,3 +62,186 @@ plot(tsl)
 ```
 
 Whoa! The chart is showing the daily closing price for Tesla for the 3-month period starting at the beginning of August.
+
+# Where do we go from here?
+
+So this was a pretty neat plot (maybe not Bloomberg quality yet, but we created it ourselves!), but it most likely won't solve your charting needs for that report you're working on. You might need to add more information, so let's dig in.
+
+You might very likely need to add a trendline to a chart, and the creators of this package really made our lives easier with the `tq_mutate()` function. The `mutate_fun` parameter is where the magic happens, as it allows you to choose the calculation that is going to be performed on your data, such as finding a MACD, EMA, volatility or returns. Each option has its own parameters, and you can learn more by punching `tq_mutate_fun_options()` on the terminal.
+
+For the sake of keeping you interested and keeping this tutorial brief (otherwise you'd read one of the longer ones available, right?) We're going to focus on the Moving Average Convergence Divergence (MACD). We're going to follow the standard 12 and 26-period EMAs for the short and long-terms, as well as the 9-period EMA as the signal. This function will only calculate the MACD and signal values, though, so if we need the histogram representing the difference, we need to use the `mutate()` function, too.
+
+```{r st3, echo=TRUE, warning=FALSE, message = FALSE}
+
+tsl <- TSLA %>%
+    filter(date >= as_date("2018-09-15")) %>%
+    ggplot(aes(date, close)) + 
+    geom_line() +
+    labs(title = "TSLA", 
+       y = "Closing Price (in U$)",
+       x = "Date") + 
+    theme_tq() + 
+    theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+TSLA_MACD <- TSLA %>%
+    tq_mutate(select = close, 
+              mutate_fun = MACD, 
+              nFast      = 12, 
+              nSlow      = 26, 
+              nSig       = 9, 
+              maType     = EMA) %>%
+    mutate(diff = macd - signal) %>%
+    filter(date >= as_date("2018-09-15"))
+
+mcd <- TSLA_MACD %>%
+    ggplot(aes(x = date)) + 
+    geom_line(aes(y = macd)) +
+    geom_line(aes(y = signal), color = "blue", linetype = 2) +
+    geom_bar(aes(y = diff), 
+             stat = "identity",
+             color = "black",
+             fill = "darkgrey") +
+    labs(y = "", x = "Date", color = "") +
+    theme_tq()
+
+grid.arrange(tsl, mcd, ncol = 1)
+```
+
+Notice that the date start was modified, since the parameters we used for the MACD indicator generate an offset and we want our chart to be aesthetically pleasing. Also notice we're using a third package: gridExtra.
+
+One final improvement we can make on this chart is switching the closing price line for a more detailed candlestick chart. This only needs a minor tweak to the chart type, as Tidyquant already downloaded all the necessary information.
+
+```{r st4, echo=TRUE, warning=FALSE, message = FALSE}
+
+tsl <- TSLA %>%
+    filter(date >= as_date("2018-09-15")) %>%
+    ggplot(aes(date, close)) + 
+    geom_candlestick(aes(open = open, 
+                         high = high, 
+                         low = low, 
+                         close = close)) +
+    labs(title = "Tesla stock price and MACD indicators", 
+       y = "Price (in U$)",
+       x = "Date") + 
+    theme_tq() + 
+    theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+TSLA_MACD <- TSLA %>%
+    tq_mutate(select = close, 
+              mutate_fun = MACD, 
+              nFast      = 12, 
+              nSlow      = 26, 
+              nSig       = 9, 
+              maType     = EMA) %>%
+    mutate(diff = macd - signal) %>%
+    filter(date >= as_date("2018-09-15"))
+
+mcd <- TSLA_MACD %>%
+    ggplot(aes(x = date)) + 
+    geom_line(aes(y = macd)) +
+    geom_line(aes(y = signal), color = "blue", linetype = 2) +
+    geom_bar(aes(y = diff), 
+             stat = "identity",
+             color = "black",
+             fill = "darkgrey") +
+    labs(y = "", x = "Date", color = "") +
+    theme_tq()
+
+grid.arrange(tsl, mcd, ncol = 1)
+```
+
+It might be more evident now that there is no data for weekends, as the stock wasn't negotiated during these periods.
+
+# Is there anything beyond Tesla?
+
+Alright! Let's track more stock using Tidyquant. To start, let's choose different tickers. We like tech, so let's choose something interesting, and create a vector with 5 new codes: "AAPL" for Apple; "AMZN" for Amazon; "GOOG" for Alphabet; "NFLX" for Netflix; "TWTR" for Twitter.
+
+To look up symbols, try using a search engine.
+
+```{r md1, echo=TRUE, cache = TRUE}
+
+tickers <- c("AAPL", "AMZN", "GOOG", "NFLX", "TWTR") %>% 
+  tq_get(from = "2018-08-01", to = "2019-01-18")
+
+```
+
+Now, let's plot the prices for these stocks. The procedure is very similar to that of plotting Tesla. Needless to say, we must take a step back and drop the candlesticks we added in the final step of the previous excercise, as well as the MACD, for the sake of making a compelling visualization.
+
+```{r md2, echo=TRUE}
+
+superb_plot <- tickers %>% 
+  ggplot(aes(date, close, color = symbol)) + 
+  geom_line() + 
+  labs(title = "Now we're tracking more symbols!", 
+       x = "Date", 
+       y = "Closing price, in U$",
+       fill = "Symbol") + 
+  theme_tq() + 
+  theme(legend.position="right", 
+        legend.title=element_blank())
+
+plot(superb_plot)
+
+```
+
+Notice that we're not comparing apples to apples here (hehehe), since these stocks are priced at different levels. Which of them were really a good investment for the period we studied? To answer this question, we should transform the prices under a common denominator. As we learnt in EDAV, it is possible to set the original stock value at date 1 (August 1st) to 100. From there, it'll be easy to understand which stock outperformed the rest.
+
+```{r md3, echo=TRUE}
+
+superb_plot_scaled <- tickers %>% 
+  group_by(symbol) %>% 
+  mutate(scaled = 100*close/close[1]) %>% 
+  ungroup()
+
+ggplot(superb_plot_scaled, 
+       aes(date, scaled, col = symbol)) + 
+  geom_line() + 
+  labs(title = "Now we can compare Apples to [not] Apples", 
+       y = "Closing Price (scaled to Aug 1st)", 
+       x = "Date") + 
+  theme_tq() + 
+  theme(legend.position="right", 
+        legend.title=element_blank())
+
+```
+
+Alright! So Netflix would have been the best bet for the period. If only we could turn back time, we could have made roughly 1 dollar for every 20 invested in that company in just five months.
+
+One final note: if you really need to plot candlestick charts with different stocks, there is a rather simple way. To maximize the visual information carried by these charts, we can simply add facets for each symbol by tweaking a chart we already used:
+
+```{r md4, echo=TRUE}
+
+superb_plot_faceted <- tickers %>% 
+  ggplot(aes(date, close, group = symbol)) + 
+  geom_candlestick(aes(open = open, 
+                         high = high, 
+                         low = low, 
+                         close = close)) + 
+  facet_wrap(~symbol, ncol = 3, scale = "free_y") +
+  labs(title = "Candles for All", 
+       x = "Date", 
+       y = "Price, in U$",
+       fill = "Symbol") + 
+  theme_tq()
+
+plot(superb_plot_faceted)
+
+```
+
+Although visuals will be scaled down, making them more difficult to read, faceted charts might help us understand different behaviours in the information we're analyzing. Notice that the "Y" axis was freed, so we can't make direct comparisons regarding stock price; however, we can compate trends, just like in our previous chart.
+
+# Where do we go from here?
+
+This has been a nice ride, we've come from understanding a few options from a package to applying what we learnt to create charts that we can make our own. If you're interested in finding more about this package, please follow up through the sources listed below. There is much more to learn!
+
+### Sources:
+
+- https://cran.r-project.org/web/packages/tidyquant/tidyquant.pdf
+
+- https://www.business-science.io/
+
+- https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ02-quant-integrations-in-tidyquant.html#example-4-use-ttr-macd-to-visualize-moving-average-convergence-divergence
