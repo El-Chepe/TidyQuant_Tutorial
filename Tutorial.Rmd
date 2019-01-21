@@ -33,3 +33,31 @@ tq_get_options()
 ```
 
 This will display some of the functions available in Tidyquant as you dive deeper and advance your quest. For the purpose of this tutorial, I'll focus on subjects associated with stock price data, but just know you could use it to retrieve information about exchanges (NYSE, NASDAQ), currencies (USD, CAD, EUR, JPY) and even metals.
+
+Alright, so to start I'll pick a stock. Let's go with Tesla.
+
+```{r st1, include = TRUE}
+TSLA <- tq_get("TSLA", get = "stock.prices", from = "2018-08-01", to = "2018-11-02")
+
+glimpse(TSLA)
+```
+
+In this case, we used the symbol for Tesla (TSLA), to pull information between August 1st and November 2nd, 2018. As you can see on the table above, `tq_get()` finds intra-day information, like opening, closing, high and low prices, as well as transaction volume and adjusted value for the stock (to correct for splits).
+
+Pretty neat, right? So what if you want to plot your own charts? You can use Tidyquant together with ggplot2 in order to create those. To achieve this, simply load `library(ggplot2)` (assuming you previously installed the package `install.packages('ggplot2')`), and wield more r power in your hands.
+
+Do you want to see the closing price for Tesla over the period we quoted a few lines ago? Simply run:
+
+```{r st2, echo=TRUE}
+
+tsl <- ggplot(TSLA, aes(date, close)) + geom_line() +
+  labs(title = "Tesla closing prices", 
+       y = "Closing Price (in U$)",
+       x = "Date") + 
+  theme_tq()
+
+plot(tsl)
+
+```
+
+Whoa! The chart is showing the daily closing price for Tesla for the 3-month period starting at the beginning of August.
