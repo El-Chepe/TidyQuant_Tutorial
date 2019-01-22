@@ -5,11 +5,11 @@ date: "January 18, 2019"
 output: html_document
 ---
 
-# Intro
+# Background
 
-So here we are, fellow reader, at the point where you need to represent some financial information on a report, and want to do something more interesting than copying images from Google. Don't want to go through the (very detailed) guide available on CRAN? Alright, read on then.
+So here we are, fellow reader, at the point where you need to include some financial information in a report, and want to do something more interesting than copying images from Google. Don't want to go through the (very detailed) guide available on [CRAN](https://cran.r-project.org/web/packages/tidyquant/tidyquant.pdf)? Alright, read on then.
 
-Tidyquant is a package that integrates information from reputable sources (Bloomberg, Yahoo Finance, etc.), and makes it readily available as tibbles for use in r. If you are an absolute beginner, I suggest that you start by downloading rstudio from [this link](https://www.rstudio.com/products/rstudio/download/), where you will be able to run the code that is included in this post.
+Tidyquant is a package that integrates information from reputable sources (Bloomberg, Yahoo Finance, etc.), and makes it readily available as tibbles for use in r. If you are an absolute beginner, I suggest that you start by downloading rstudio from [this link](https://www.rstudio.com/products/rstudio/download/), where you will be able to run the code that is referenced in this post.
 
 # Getting Started
 
@@ -17,7 +17,7 @@ The first step towards using this package is installing it on r. It is as simple
 
 `install.packages('tidyquant')`
 
-And presto, We're ready to go! Just remember, before using functions from this package, you have to load the library (we're adding three at once here, in order to ease our handling of dates and to be more organized with our charts).
+And presto, we're ready to go! Just remember, before using functions from this package, you have to load the library (we're adding three at once here, in order to ease our handling of dates and to be more organized with our charts).
 
 ```{r gs2, include = TRUE, warning=FALSE, message=FALSE}
 library(lubridate)
@@ -27,13 +27,13 @@ library(gridExtra)
 
 # So, what can we do with it?
 
-Now, we're going to focus in some of the functions from Tidyquant. If you'd like to know how far this package can take you, run the following instruction:
+Now, we're going to focus in some of the functions of Tidyquant. If you'd like to know how far this package can take you, run the following instruction:
 
 ```{r st, include = TRUE}
 tq_get_options()
 ```
 
-This will display some of the functions available in Tidyquant as you dive deeper and advance your quest. For the purpose of this tutorial, I'll focus on subjects associated with stock price data, but just know you could use it to retrieve information about exchanges (NYSE, NASDAQ), currencies (USD, CAD, EUR, JPY) and even metals.
+This will display some of the options available as you dive deeper and advance your quest. For the purpose of this tutorial, I'll focus onstock price data. It is enough for you to know that this package supports information retrieval of exchanges (NYSE, NASDAQ), currencies (USD, CAD, EUR, JPY) and even metals.
 
 Alright, so to start I'll pick a stock. Let's go with Tesla.
 
@@ -43,13 +43,17 @@ TSLA <- tq_get("TSLA", get = "stock.prices", from = "2018-08-01", to = "2019-01-
 glimpse(TSLA)
 ```
 
-In this case, we used the symbol for Tesla (TSLA), to pull information between August 1st, 2018 and January 18th, 2019. As you can see on the table above, `tq_get()` finds intra-day information, like opening, closing, high and low prices, as well as transaction volume and adjusted value for the stock (to correct for splits).
+In this case, we used the symbol for Tesla (TSLA), to pull information between August 1st, 2018 and January 18th, 2019. You can replace those dates with a timeframe that suits you better, for instance using today() as the end date. 
+
+As you can see on the table above, `tq_get()` finds intra-day information, like opening, closing, high and low prices, as well as transaction volume and adjusted value for the stock (to correct for splits).
 
 Pretty neat, right? So what if you want to plot your own charts? You can use Tidyquant together with ggplot2 in order to create those. To achieve this, simply load `library(ggplot2)` (assuming you previously installed the package `install.packages('ggplot2')`), and wield more r power in your hands.
 
 Do you want to see the closing price for Tesla over the period we quoted a few lines ago? Simply run:
 
 ```{r st2, echo=TRUE}
+
+library(ggplot2)
 
 tsl <- ggplot(TSLA, aes(date, close)) + geom_line() +
   labs(title = "Tesla closing prices", 
@@ -61,9 +65,9 @@ plot(tsl)
 
 ```
 
-Whoa! The chart is showing the daily closing price for Tesla for the 3-month period starting at the beginning of August.
+Whoa! The chart is showing the daily closing price for Tesla for the 6-month period starting at the beginning of August.
 
-# Where do we go from here?
+# What else can we do?
 
 So this was a pretty neat plot (maybe not Bloomberg quality yet, but we created it ourselves!), but it most likely won't solve your charting needs for that report you're working on. You might need to add more information, so let's dig in.
 
@@ -109,9 +113,9 @@ mcd <- TSLA_MACD %>%
 grid.arrange(tsl, mcd, ncol = 1)
 ```
 
-Notice that the date start was modified, since the parameters we used for the MACD indicator generate an offset and we want our chart to be aesthetically pleasing. Also notice we're using a third package: gridExtra.
+Notice that the first date was modified, since the parameters we used for the MACD indicator generate an offset. Also notice we're using a third package: gridExtra. This package allows one chart (price) to be on top of the other (MACD.
 
-One final improvement we can make on this chart is switching the closing price line for a more detailed candlestick chart. This only needs a minor tweak to the chart type, as Tidyquant already downloaded all the necessary information.
+One final improvement we can make on this graph is switching the closing price line for a more detailed candlestick chart. This only needs a minor tweak to the chart type, as Tidyquant already downloaded all the necessary information.
 
 ```{r st4, echo=TRUE, warning=FALSE, message = FALSE}
 
@@ -158,28 +162,42 @@ It might be more evident now that there is no data for weekends, as the stock wa
 
 # Is there anything beyond Tesla?
 
-Alright! Let's track more stock using Tidyquant. To start, let's choose different tickers. We like tech, so let's choose something interesting, and create a vector with 5 new codes: "AAPL" for Apple; "AMZN" for Amazon; "GOOG" for Alphabet; "NFLX" for Netflix; "TWTR" for Twitter.
+Ok! Let's track more stock using Tidyquant. To start, let's choose different tickers. We like tech, so let's choose something interesting, and create a vector with 6 new codes: "AAPL" for Apple; "AMZN" for Amazon; "GOOG" for Alphabet; "NFLX" for Netflix; "TWTR" for Twitter and "FB" for Facebook.
 
 To look up symbols, try using a search engine.
 
 ```{r md1, echo=TRUE, cache = TRUE}
 
-tickers <- c("AAPL", "AMZN", "GOOG", "NFLX", "TWTR") %>% 
+tickers <- c("AAPL", "AMZN", "GOOG", "NFLX", "TWTR", "FB") %>% 
   tq_get(from = "2018-08-01", to = "2019-01-18")
+
+palette <- c("NFLX" = '#e6194b', 
+             "AAPL" = '#e6beff', 
+             "AMZN" = '#3cb44b', 
+             "FB" = '#4363d8',
+             "GOOG" = '#fabebe',
+             "TWTR" = '#46f0f0')
 
 ```
 
-Now, let's plot the prices for these stocks. The procedure is very similar to that of plotting Tesla. Needless to say, we must take a step back and drop the candlesticks we added in the final step of the previous excercise, as well as the MACD, for the sake of making a compelling visualization.
+For the sake of keeping track of our symbols throughout charts, we set up a color code for each equity.
+
+Now, let's plot the prices. The procedure is very similar to that of plotting Tesla. Needless to say, we must take a step back and drop the candlesticks we added in the final step of the previous excercise, as well as the MACD, for the sake of making a compelling visualization.
 
 ```{r md2, echo=TRUE}
 
 superb_plot <- tickers %>% 
-  ggplot(aes(date, close, color = symbol)) + 
+  ggplot(aes(date, close, 
+             color = fct_reorder(symbol, 
+                                 close, 
+                                 .fun = last,
+                                 .desc = TRUE))) + 
   geom_line() + 
   labs(title = "Now we're tracking more symbols!", 
        x = "Date", 
        y = "Closing price, in U$",
        fill = "Symbol") + 
+  scale_colour_manual(values = palette) +
   theme_tq() + 
   theme(legend.position="right", 
         legend.title=element_blank())
@@ -188,7 +206,7 @@ plot(superb_plot)
 
 ```
 
-Notice that we're not comparing apples to apples here (hehehe), since these stocks are priced at different levels. Which of them were really a good investment for the period we studied? To answer this question, we should transform the prices under a common denominator. As we learnt in EDAV, it is possible to set the original stock value at date 1 (August 1st) to 100. From there, it'll be easy to understand which stock outperformed the rest.
+Notice that we're not comparing apples to apples here (hehehe), since these equities are priced at different levels. Which of them were really a good investment for the period under study? To answer this question, we should transform the prices under a common denominator. It is possible to set the original stock value at date 1 (August 1st) to 100. From there, it'll be easy to understand how each stock behaved, and we'll see which one outperformed the rest.
 
 ```{r md3, echo=TRUE}
 
@@ -198,20 +216,25 @@ superb_plot_scaled <- tickers %>%
   ungroup()
 
 ggplot(superb_plot_scaled, 
-       aes(date, scaled, col = symbol)) + 
+       aes(date, scaled, 
+           color = fct_reorder(symbol, 
+                               scaled, 
+                               .fun = last, 
+                               .desc = TRUE))) + 
   geom_line() + 
   labs(title = "Now we can compare Apples to [not] Apples", 
-       y = "Closing Price (scaled to Aug 1st)", 
+       y = "Scaled Price (Based on Aug 1st)", 
        x = "Date") + 
+  scale_colour_manual(values = palette) +
   theme_tq() + 
   theme(legend.position="right", 
         legend.title=element_blank())
 
 ```
 
-Alright! So Netflix would have been the best bet for the period. If only we could turn back time, we could have made roughly 1 dollar for every 20 invested in that company in just five months.
+Great! So Netflix would have been the best bet for the period. If only we could turn back time, we could have made roughly 1 dollar for every 20 invested in that company in under six months.
 
-One final note: if you really need to plot candlestick charts with different stocks, there is a rather simple way. To maximize the visual information carried by these charts, we can simply add facets for each symbol by tweaking a chart we already used:
+One final note: if you really need to plot candlestick charts with different stocks, there is a rather simple way. To maximize the visual information carried by these graphs, we can simply add facets for each symbol by tweaking a chart we already used:
 
 ```{r md4, echo=TRUE}
 
@@ -232,11 +255,11 @@ plot(superb_plot_faceted)
 
 ```
 
-Although visuals will be scaled down, making them more difficult to read, faceted charts might help us understand different behaviours in the information we're analyzing. Notice that the "Y" axis was freed, so we can't make direct comparisons regarding stock price; however, we can compate trends, just like in our previous chart.
+The size of thevisuals will be reduced, making them more difficult to read; however, faceted charts help us understand different behaviours in the information we're analyzing. Notice that the Y-axis was freed, so we can't make direct comparisons regarding stock price; however, we can compare trends, just like in our previous chart.
 
 # Where do we go from here?
 
-This has been a nice ride, we've come from understanding a few options from a package to applying what we learnt to create charts that we can make our own. If you're interested in finding more about this package, please follow up through the sources listed below. There is much more to learn!
+This has been a nice ride, we've come from understanding a few options from a package to applying them in the creation of our own charts. If you're interested in finding more about this package, please follow up through the sources listed below. There is much more to learn!
 
 ### Sources:
 
